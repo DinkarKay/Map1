@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Map</title>
+
+  <!-- The css we have added  -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- CSS Leaflet -->
+  <!-- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" /> -->
+
+  <link rel="stylesheet" href="leaflet.css">
+
+  <!-- Javascript Leaflet -->
+  <!-- Make sure you put this AFTER Leaflet's CSS -->
+
+  <!-- <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script> -->
+  <script src="leaflet.js"></script>
+  <script src="leaflet.ajax.min.js"></script>
+</head>
+
+<body>
+  <!-- The div where the map will be displayed -->
+  <div id="map-div"></div>
+</body>
+
+<!-- IN this part we write the javascript code that displays the map in the above added map div -->
+<script>
+  // A default map variable created
+  var map = L.map('map-div').setView([27.6739337, 85.2729625], 15);
+  // var map = L.map('map-div').setView([0, 0], 7);
+
+  // 27.6739337,85.2729625
+  // The addition of the tile layer to the map
+  // L.tileLayer is the predefined function that adds the tile layer to the map
+
+  var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, OSM'
+  });
+  osm.addTo(map)
+
+  // Tile layer from different sourcesç
+  // https://leaflet-extras.github.io/leaflet-providers/preview/
+  var Stadia_AlidadeSmoothDark = L.tileLayer(
+    'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+      maxZoom: 20,
+      attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+    });
+  Stadia_AlidadeSmoothDark.addTo(map);
+
+// adding geojson
+// var geojsonFeature = {
+//     "type": "Feature",
+//     "properties": {
+//         "name": "Coors Field",
+//         "amenity": "Baseball Stadium",
+//         "popupContent": "This is where the Rockies play!"
+//     },
+//     "geometry": {
+//         "type": "Point",
+//         "coordinates": [-104.99404, 39.75621]
+//     }
+// };
+// L.geoJSON(geojsonFeature).addTo(map);
+
+
+  
+   //adding external geojson file 
+  
+  // Marker icon change
+  var restaurantIcon= L.icon({
+    iconUrl: 'restaurant-icon.png',
+    iconSize: [25, 25], // size of the icon
+    iconAnchor: [0, 0], // point of the icon which will correspond to marker's location
+    popupAnchor: [0, 0] // point from which the popup should open relative to the iconAnchor
+  });
+
+
+  var geojsonLayer = new L.GeoJSON.AJAX("data/HydroStation.geojson", {
+    pointToLayer: function (feature, latlng) {
+      // debugger;
+      return L.marker(latlng, {
+       icon: restaurantIcon
+      }).bindTooltip(feature.properties.RIVER_NAME,{permanent:true,offset:[10,0]}).openTooltip();
+    },
+    onEachFeature: function (feature, layer) {
+      name = feature.properties.name == null? 'Sorry no name':feature.properties.name; 
+      popup = `<h1>${name}<\h1>`
+      layer.bindPopup(popup);
+    }
+  });
+  geojsonLayer.addTo(map);
+
+
+  // layer switcher
+  var baseMaps = {
+    "bright": osm,
+    "dark": Stadia_AlidadeSmoothDark
+  };
+
+  var overlayMaps = {
+    "Taps": geojsonLayer
+  };
+
+  L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+</script>
+
+</html>
